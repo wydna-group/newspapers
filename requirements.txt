@@ -1,0 +1,7 @@
+playwright>=1.44.0
+requests>=2.32.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9
+click>=8.1.7
+tqdm>=4.66.0
+python-dotenv>=1.0.0

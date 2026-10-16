@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}{{ newspaper }} — {{ date_str }}{% endblock %}
+
+{% block extra_style %}
+.back { display: inline-block; margin-bottom: 20px; color: #888; text-decoration: none; font-size: .9rem; }
+.back:hover { color: #333; }
+
+.story-header {
+  margin-bottom: 28px;
+}
+.story-header h1 { font-size: 1.4rem; margin-bottom: 4px; }
+.story-header .sub {
+  font-size: .95rem;
+  color: #666;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.conf-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.conf-badge.consecutive { background: #e8f5e9; color: #2e7d32; }
+.conf-badge.nearby      { background: #fff3e0; color: #e65100; }
+.conf-badge.scattered   { background: #f5f5f5; color: #616161; }
+.conf-badge.single      { background: #f5f5f5; color: #9e9e9e; }
+
+.clips-stack { display: flex; flex-direction: column; gap: 40px; }
+
+.clip-row {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 28px;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .clip-row { grid-template-columns: 1fr; }
+}
+
+.clip-image {
+  background: #e8e0d0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,.12);
+}
+.clip-image img { width: 100%; height: auto; display: block; }
+.no-image { padding: 60px; text-align: center; color: #bbb; }
+
+.clip-meta {
+  background: #fff;
+  border-radius: 6px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.clip-meta h3 { font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+.meta-row { display: flex; gap: 10px; font-size: .88rem; }
+.meta-row .label { color: #999; min-width: 70px; flex-shrink: 0; }
+
+.ocr-block { font-size: .85rem; }
+.ocr-block .ocr-label {
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+.ocr-text {
+  font-family: Georgia, serif;
+  line-height: 1.7;
+  color: #333;
+  white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: .85rem;
+}
+
+.ext-link {
+  font-size: .82rem;
+  color: #c8a96e;
+  text-decoration: none;
+}
+.ext-link:hover { text-decoration: underline; }
+
+.divider {
+  border: none;
+  border-top: 2px dashed #e0d8cc;
+  margin: 0;
+}
+{% endblock %}
+
+{% block content %}
+<a class="back" href="{{ url_for('stories') }}">← Back to stories</a>
+
+<div class="story-header">
+  <h1>{{ newspaper or '(unknown newspaper)' }}</h1>
+  <div class="sub">
+    <span>{{ date_str }}</span>
+    <span>{{ clips | length }} clipping{% if clips | length != 1 %}s{% endif %}</span>
+    <span class="conf-badge {{ confidence }}">
+      {% if confidence == 'consecutive' %}Consecutive pages
+      {% elif confidence == 'nearby' %}Nearby pages
+      {% elif confidence == 'scattered' %}Scattered pages
+      {% else %}Single clip
+      {% endif %}
+    </span>
+  </div>
+</div>
+
+<div class="clips-stack">
+{% for c in clips %}
+{% if not loop.first %}<hr class="divider">{% endif %}
+<div class="clip-row">
+  <div class="clip-image">
+    {% if c.image_path %}
+    <img src="{{ url_for('serve_image', filename=c.image_path | replace('\\', '/') | replace('images/', '')) }}"
+         alt="{{ c.title or 'Clipping' }}">
+    {% else %}
+    <div class="no-image">Image not downloaded yet</div>
+    {% endif %}
+  </div>
+  <div class="clip-meta">
+    <h3>{{ c.title or '(untitled)' }}</h3>
+    {% if c.page_number %}
+    <div class="meta-row"><span class="label">Page</span><span>{{ c.page_number }}</span></div>
+    {% endif %}
+    {% if c.author %}
+    <div class="meta-row"><span class="label">Author</span><span>{{ c.author }}</span></div>
+    {% endif %}
+    {% if c.clipping_url %}
+    <a class="ext-link" href="{{ c.clipping_url }}" target="_blank" rel="noopener">View on newspapers.com ↗</a>
+    {% endif %}
+    {% if c.ocr_text %}
+    <div class="ocr-block">
+      <div class="ocr-label">OCR Text</div>
+      <div class="ocr-text">{{ c.ocr_text }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

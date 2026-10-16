@@ -1,0 +1,30 @@
+# Secrets
+.env
+cookies.txt
+
+# Downloaded assets (large)
+images/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# Run logs (list downloaded articles)
+*.log
+
+# debug_intercept.py output (captured account pages/responses)
+debug_responses.json
+debug_page.html
+
+# Local Claude Code settings
+.claude/

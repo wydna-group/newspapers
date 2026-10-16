@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}{{ clipping.title or 'Clipping' }} — {{ clipping.newspaper_name or '' }}{% endblock %}
+
+{% block extra_style %}
+.back { display: inline-block; margin-bottom: 20px; color: #888; text-decoration: none; font-size: .9rem; }
+.back:hover { color: #333; }
+
+.detail-wrap {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .detail-wrap { grid-template-columns: 1fr; }
+}
+
+.clipping-image {
+  background: #e8e0d0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+}
+.clipping-image img { width: 100%; height: auto; display: block; }
+.no-image-large { padding: 80px; text-align: center; color: #aaa; }
+
+.sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+.meta-card, .ocr-card, .tei-card {
+  background: #fff;
+  border-radius: 6px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+.meta-card h2, .ocr-card h2, .tei-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+.meta-row { display: flex; gap: 10px; margin-bottom: 8px; font-size: .9rem; line-height: 1.4; }
+.meta-row .label { color: #999; min-width: 90px; flex-shrink: 0; }
+
+.ocr-text {
+  font-family: Georgia, serif;
+  font-size: .88rem;
+  line-height: 1.7;
+  color: #333;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* TEI tabs */
+.tei-tabs { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 2px solid #eee; }
+.tei-tab {
+  padding: 6px 14px;
+  font-size: .85rem;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: #999;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+.tei-tab.active { color: #1a1a1a; border-bottom-color: #c8a96e; font-weight: bold; }
+.tei-panel { display: none; }
+.tei-panel.active { display: block; }
+
+/* Rendered TEI entities */
+.tei-rendered {
+  font-family: Georgia, serif;
+  font-size: .88rem;
+  line-height: 1.9;
+  color: #222;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.tei-rendered p { margin-bottom: .8em; }
+
+.ent {
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: .82em;
+  display: inline;
+  white-space: nowrap;
+}
+.ent-persName  { background: #fce4ec; color: #880e4f; }
+.ent-orgName   { background: #e3f2fd; color: #0d47a1; }
+.ent-placeName { background: #e8f5e9; color: #1b5e20; }
+.ent-date      { background: #fff8e1; color: #e65100; }
+.ent-time      { background: #fff8e1; color: #e65100; }
+.ent-name      { background: #f3e5f5; color: #4a148c; }
+.ent-title     { background: #e0f7fa; color: #006064; font-style: italic; }
+.ent-label {
+  font-size: .7em;
+  opacity: .7;
+  margin-left: 2px;
+  font-family: sans-serif;
+  font-style: normal;
+}
+
+/* Legend */
+.ent-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: .78rem;
+}
+
+/* TEI XML source */
+.tei-xml {
+  font-family: 'Courier New', monospace;
+  font-size: .75rem;
+  line-height: 1.5;
+  background: #f8f6f0;
+  padding: 12px;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 420px;
+  white-space: pre;
+  color: #333;
+}
+.xml-tag    { color: #0d47a1; }
+.xml-attr   { color: #880e4f; }
+.xml-val    { color: #2e7d32; }
+.xml-text   { color: #333; }
+
+.ext-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: .85rem;
+  color: #c8a96e;
+  text-decoration: none;
+}
+.ext-link:hover { text-decoration: underline; }
+
+.dl-link {
+  font-size: .8rem;
+  color: #aaa;
+  text-decoration: none;
+  float: right;
+  margin-top: -2px;
+}
+.dl-link:hover { color: #c8a96e; }
+{% endblock %}
+
+{% block content %}
+<a class="back" href="javascript:history.back()">← Back</a>
+
+<div class="detail-wrap">
+  <div class="clipping-image">
+    {% if clipping.image_path %}
+    <img src="{{ url_for('serve_image', filename=clipping.image_path | replace('\\', '/') | replace('images/', '')) }}"
+         alt="{{ clipping.title or 'Clipping' }}">
+    {% else %}
+    <div class="no-image-large">Image not downloaded yet</div>
+    {% endif %}
+  </div>
+
+  <div class="sidebar">
+    <div class="meta-card">
+      <h2>{{ clipping.title or '(untitled)' }}</h2>
+      {% if clipping.newspaper_name %}
+      <div class="meta-row"><span class="label">Newspaper</span><span class="value">{{ clipping.newspaper_name }}</span></div>
+      {% endif %}
+      {% if clipping.publication_date %}
+      <div class="meta-row"><span class="label">Date</span><span class="value">{{ clipping.publication_date.strftime('%B %d, %Y').replace(' 0', ' ') }}</span></div>
+      {% endif %}
+      {% if clipping.author %}
+      <div class="meta-row"><span class="label">Author</span><span class="value">{{ clipping.author }}</span></div>
+      {% endif %}
+      {% if clipping.page_number %}
+      <div class="meta-row"><span class="label">Page</span><span class="value">{{ clipping.page_number }}</span></div>
+      {% endif %}
+      {% if clipping.clipping_url %}
+      <a class="ext-link" href="{{ clipping.clipping_url }}" target="_blank" rel="noopener">View on newspapers.com ↗</a>
+      {% endif %}
+    </div>
+
+    {% if clipping.tei_xml %}
+    <div class="tei-card">
+      <h2>
+        TEI Encoding
+        <a class="dl-link" href="{{ url_for('tei_download', clipping_id=clipping.id) }}" download>⬇ XML</a>
+      </h2>
+      <div class="tei-tabs">
+        <button class="tei-tab active" onclick="switchTab(this,'rendered')">Annotated</button>
+        <button class="tei-tab" onclick="switchTab(this,'source')">XML Source</button>
+      </div>
+
+      <div class="tei-panel active" id="panel-rendered">
+        <div class="ent-legend">
+          <span class="ent ent-persName">Person</span>
+          <span class="ent ent-orgName">Organization</span>
+          <span class="ent ent-placeName">Place</span>
+          <span class="ent ent-date">Date/Time</span>
+          <span class="ent ent-name">Group/Event/Law</span>
+          <span class="ent ent-title">Work</span>
+        </div>
+        <div class="tei-rendered" id="tei-rendered-content"></div>
+      </div>
+
+      <div class="tei-panel" id="panel-source">
+        <div class="tei-xml" id="tei-xml-source"></div>
+      </div>
+    </div>
+    {% elif clipping.ocr_text %}
+    <div class="ocr-card">
+      <h2>OCR Text</h2>
+      <div class="ocr-text">{{ clipping.ocr_text }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if clipping.tei_xml %}
+<script>
+const TEI_XML = {{ clipping.tei_xml | tojson }};
+
+function switchTab(btn, panel) {
+  document.querySelectorAll('.tei-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tei-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + panel).classList.add('active');
+}
+
+// Render TEI entities into readable HTML
+function renderTEI(xmlStr) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlStr, 'application/xml');
+  const ns = 'http://www.tei-c.org/ns/1.0';
+
+  const ENTITY_LABELS = {
+    persName: 'person', orgName: 'org', placeName: 'place',
+    date: 'date', time: 'time', name: '', title: 'work'
+  };
+
+  function nodeToHtml(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    const tag = node.localName;
+    if (tag === 'p') {
+      return '<p>' + Array.from(node.childNodes).map(nodeToHtml).join('') + '</p>';
+    }
+    if (tag === 'head') {
+      return '<strong>' + Array.from(node.childNodes).map(nodeToHtml).join('') + '</strong>';
+    }
+    if (ENTITY_LABELS.hasOwnProperty(tag)) {
+      const label = ENTITY_LABELS[tag] || (node.getAttribute('type') || '');
+      const typeAttr = node.getAttribute('type') || '';
+      const cls = 'ent ent-' + tag + (typeAttr === 'facility' || typeAttr === 'natural' ? '' : '');
+      const inner = Array.from(node.childNodes).map(nodeToHtml).join('');
+      const labelHtml = label ? `<span class="ent-label">${label}</span>` : '';
+      return `<span class="${cls}">${inner}${labelHtml}</span>`;
+    }
+    // other elements: just render children
+    return Array.from(node.childNodes).map(nodeToHtml).join('');
+  }
+
+  const divs = doc.getElementsByTagNameNS(ns, 'div');
+  let html = '';
+  for (const div of divs) {
+    for (const child of div.childNodes) {
+      html += nodeToHtml(child);
+    }
+  }
+  return html || '<em style="color:#aaa">No body content</em>';
+}
+
+// XML syntax highlighting
+function highlightXML(xml) {
+  return xml
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(&lt;\/?)([\w:]+)/g, '<span class="xml-tag">$1$2</span>')
+    .replace(/([\w:]+)(=)(&quot;[^&]*&quot;)/g,
+             '<span class="xml-attr">$1</span>$2<span class="xml-val">$3</span>');
+}
+
+document.getElementById('tei-rendered-content').innerHTML = renderTEI(TEI_XML);
+document.getElementById('tei-xml-source').innerHTML = highlightXML(TEI_XML);
+</script>
+{% endif %}
+{% endblock %}

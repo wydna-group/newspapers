@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Clippings{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Georgia, serif; background: #f5f0e8; color: #222; min-height: 100vh; }
+
+    header {
+      background: #1a1a1a;
+      color: #f5f0e8;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    header a.logo {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #f5f0e8;
+      text-decoration: none;
+      white-space: nowrap;
+      letter-spacing: .02em;
+    }
+
+    form.search {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    form.search input[type=text],
+    form.search select {
+      padding: 7px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: .95rem;
+      background: #2e2e2e;
+      color: #f5f0e8;
+      flex: 1;
+      min-width: 160px;
+    }
+    form.search input[type=text]::placeholder { color: #999; }
+    form.search select option { background: #2e2e2e; }
+    form.search button {
+      padding: 7px 18px;
+      background: #c8a96e;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 4px;
+      font-size: .95rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    form.search button:hover { background: #d4b97e; }
+
+    main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+    {% block extra_style %}{% endblock %}
+  </style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">Newspaper Clippings</a>
+  <a href="/stories" style="color:#c8a96e;text-decoration:none;font-size:.9rem;white-space:nowrap;">Stories</a>
+  <form class="search" method="get" action="/">
+    <input type="text" name="q" placeholder="Search title, OCR text, newspaper…" value="{{ q|default('') }}">
+    <select name="newspaper">
+      <option value="">All newspapers</option>
+      {% for n in newspapers|default([]) %}
+      <option value="{{ n }}" {% if newspaper|default('') == n %}selected{% endif %}>{{ n }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Search</button>
+    {% if q|default('') or newspaper|default('') %}
+    <a href="/" style="padding:7px 12px;color:#ccc;text-decoration:none;font-size:.9rem;">✕ Clear</a>
+    {% endif %}
+  </form>
+</header>
+<main>
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>
