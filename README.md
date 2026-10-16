@@ -16,7 +16,8 @@ database, including images, OCR text, and metadata (newspaper name, date, author
 ### 1. Install dependencies
 
 ```bash
-cd "C:\Users\kantb\OneDrive\Documents\newspapers"
+git clone https://github.com/wydna-group/newspapers.git
+cd newspapers
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
